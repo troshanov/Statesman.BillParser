@@ -1,0 +1,6 @@
+@Statesman.BillParser.API_HostAddress = http://localhost:5086
+
+GET {{Statesman.BillParser.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

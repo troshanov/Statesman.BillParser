@@ -1,0 +1,74 @@
+﻿@page "/bill-queue"
+
+@inject IBillsService billsService
+@inject NavigationManager Navigation
+
+<PageTitle>Bill Queue</PageTitle>
+
+<h1>Bill Queue</h1>
+
+<p>Bills to be parsed.</p>
+
+@if (loading)
+{
+    <MudProgressCircular Color="Color.Primary"
+                         Indeterminate="true" />
+}
+else if (error != null)
+{
+    <MudAlert Severity="Severity.Error">
+        @error
+    </MudAlert>
+}
+else
+{
+    <MudSimpleTable Hover="true" Striped="true" Style="overflow-x: auto;">
+        <thead>
+            <tr>
+                @foreach (var h in headings)
+                {
+                    <th>@h</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @if (bills != null)
+            {
+                @foreach (var bill in bills)
+                {
+                    <tr @onclick="() => NavigateToBill(bill.Id)" style="cursor: pointer">
+                        <td>@bill.Title</td>
+                        <td>@bill.Date.ToShortDateString()</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </MudSimpleTable>
+}
+
+@code {
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            bills = await billsService.GetUnparsedBillsAsync();
+            loading = false;
+        }
+        catch (Exception ex)
+        {
+            error = $"Error loading bills: {ex.Message}";
+            loading = false;
+        }
+    }
+
+    private IEnumerable<BillDto>? bills;
+    private bool loading = true;
+    private string? error;
+    string[] headings = { "Title", "Date" };
+
+    private void NavigateToBill(int billId)
+    {
+        Navigation.NavigateTo($"/bill/{billId}");
+    }
+}

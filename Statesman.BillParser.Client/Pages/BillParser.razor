@@ -1,0 +1,169 @@
+﻿@page "/bill-parser"
+<h3>BillParser</h3>
+@using MudBlazor
+
+<MudContainer MaxWidth="MaxWidth.Medium">
+    <MudPaper Class="pa-4 mt-4">
+        <MudText Typo="Typo.h5" Class="mb-4">Dynamic Form Builder</MudText>
+
+        <MudSelect T="string" 
+                   Label="Add Field Type" 
+                   @bind-Value="selectedFieldType"
+                   Class="mb-4">
+            @foreach (var type in fieldTypes)
+            {
+                <MudSelectItem Value="@type">@type</MudSelectItem>
+            }
+        </MudSelect>
+
+        @foreach (var field in dynamicFields)
+        {
+            <MudPaper Class="pa-4 mb-3" Elevation="0">
+                <MudGrid>
+                    <MudItem xs="11">
+                        @switch (field.Type)
+                        {
+                            case "Text":
+                                <MudTextField @bind-Value="field.Value"
+                                            Label="@($"Text Field {field.Id}")"
+                                            Variant="Variant.Outlined"
+                                            Required="@field.IsRequired"
+                                            ErrorText="@(field.HasError ? "This field is required" : null)" />
+                                break;
+
+                            case "Number":
+                                <MudNumericField @bind-Value="field.NumberValue"
+                                               Label="@($"Number Field {field.Id}")"
+                                               Variant="Variant.Outlined"
+                                               Required="@field.IsRequired"
+                                               ErrorText="@(field.HasError ? "This field is required" : null)" />
+                                break;
+
+                            case "Date":
+                                <MudDatePicker @bind-Date="field.DateValue"
+                                             Label="@($"Date Field {field.Id}")"
+                                             Required="@field.IsRequired"
+                                             ErrorText="@(field.HasError ? "This field is required" : null)" />
+                                break;
+
+                            case "Select":
+                                <MudSelect T="string"
+                                         @bind-Value="field.Value"
+                                         Label="@($"Select Field {field.Id}")"
+                                         Required="@field.IsRequired"
+                                         ErrorText="@(field.HasError ? "This field is required" : null)">
+                                    <MudSelectItem Value="@("Option 1")">Option 1</MudSelectItem>
+                                    <MudSelectItem Value="@("Option 2")">Option 2</MudSelectItem>
+                                    <MudSelectItem Value="@("Option 3")">Option 3</MudSelectItem>
+                                </MudSelect>
+                                break;
+                        }
+                    </MudItem>
+                    <MudItem xs="1" Class="d-flex align-center justify-center">
+                        <MudStack Row>
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                         Color="Color.Error"
+                                         OnClick="@(() => RemoveField(field.Id))" />
+                            <MudCheckBox T="bool" @bind-Checked="field.IsRequired"
+                                       Label="Required"
+                                       Color="Color.Primary" />
+                        </MudStack>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+        }
+
+        <MudButton StartIcon="@Icons.Material.Filled.Add"
+                   Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   OnClick="AddNewField"
+                   Disabled="@string.IsNullOrEmpty(selectedFieldType)"
+                   Class="mt-2">
+            Add @selectedFieldType Field
+        </MudButton>
+
+        @if (dynamicFields.Any())
+        {
+            <MudDivider Class="my-4"/>
+            <MudButton Color="Color.Secondary"
+                      Variant="Variant.Filled"
+                      OnClick="SubmitForm">
+                Submit
+            </MudButton>
+        }
+    </MudPaper>
+
+    @if (showSuccessMessage)
+    {
+        <MudAlert Severity="Severity.Success" Class="mt-4">Form submitted successfully!</MudAlert>
+    }
+</MudContainer>
+
+@code {
+    private List<DynamicField> dynamicFields = new();
+    private int nextId = 1;
+    private string? selectedFieldType;
+    private bool showSuccessMessage;
+
+    private string[] fieldTypes = new[] { "Text", "Number", "Date", "Select" };
+
+    private class DynamicField
+    {
+        public int Id { get; set; }
+        public string Type { get; set; } = null!;
+        public string? Value { get; set; }
+        public decimal? NumberValue { get; set; }
+        public DateTime? DateValue { get; set; }
+        public bool IsRequired { get; set; }
+        public bool HasError { get; set; }
+    }
+
+    private void AddNewField()
+    {
+        if (!string.IsNullOrEmpty(selectedFieldType))
+        {
+            dynamicFields.Add(new DynamicField 
+            { 
+                Id = nextId++,
+                Type = selectedFieldType
+            });
+            StateHasChanged();
+        }
+    }
+
+    private void RemoveField(int id)
+    {
+        dynamicFields.RemoveAll(f => f.Id == id);
+        StateHasChanged();
+    }
+
+    private async Task SubmitForm()
+    {
+        showSuccessMessage = false;
+        bool isValid = true;
+
+        foreach (var field in dynamicFields)
+        {
+            field.HasError = field.IsRequired && (
+                (field.Type == "Text" && string.IsNullOrEmpty(field.Value)) ||
+                (field.Type == "Number" && !field.NumberValue.HasValue) ||
+                (field.Type == "Date" && !field.DateValue.HasValue) ||
+                (field.Type == "Select" && string.IsNullOrEmpty(field.Value))
+            );
+
+            if (field.HasError)
+            {
+                isValid = false;
+            }
+        }
+
+        if (isValid)
+        {
+            // Process form data here
+            await Task.Delay(500); // Simulate API call
+            showSuccessMessage = true;
+        }
+
+        StateHasChanged();
+    }
+}
