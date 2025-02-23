@@ -28,5 +28,13 @@ namespace Statesman.BillParser.API.Controllers
 
             return Ok(_mapper.Map<IEnumerable<BillDto>>(result));
         }
+
+        [HttpGet]
+        [Route("{id}")]
+        public async Task<IActionResult> GetBillById(int id)
+        {
+            var result = await _billRepository.GetBillByIdAsync(id);
+            return Ok(_mapper.Map<BillDto>(result));
+        }
     }
 }
