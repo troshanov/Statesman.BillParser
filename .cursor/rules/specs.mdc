@@ -1,0 +1,12 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+I am building an application that should help people manually parse a legislative bill's raw text into structured data object that has all the bill's elements (for example Title, Motives, Articles etc.). The ultimate purpose of the app is to have the bill stored in a structured way in my database, so it can be used by other applications to visualize the data properly.
+
+The application is a Blazor webassembly that fetches the raw bill data from an asp.net core API of mine. The API is not the object of this project, it's all about the user interface part. 
+
+The app should utilize MudBlazor components to achieve the goals. The most important page is the one where user parses the raw text with the help of input fields that represent different elements of the Bill. The raw bill text should be conveniently placed somewhere on the page, so that the user can copy/paste contents in the input fields.
+
+A part of that there is a page whit a table that has all the raw text bills awaiting parsing that can be searched. 

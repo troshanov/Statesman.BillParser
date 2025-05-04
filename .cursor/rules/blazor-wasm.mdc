@@ -1,0 +1,6 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Stick to Blazor Webassembly with MudBlazor for the Statesman.BillParser.Client project

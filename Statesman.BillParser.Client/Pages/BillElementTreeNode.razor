@@ -1,0 +1,56 @@
+﻿@using Statesman.BillParser.Client.Models.BillElements
+@using Statesman.BillParser.Client.Utilities
+
+<MudPaper Class="pa-4 mb-3">
+    <MudGrid>
+        <MudItem xs="12">
+            <MudSelect T="BillElementType" Label="Element Type"
+                       @bind-Value="Node.Value.Type"
+                       Variant="Variant.Outlined"
+                       Class="mb-2">
+                @foreach (var type in GetAllowedTypes(Node.Value.Type))
+                {
+                    <MudSelectItem Value="@type">@type.ToString()</MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudText Class="mb-2">@Node.Value.Marker</MudText>
+            <MudTextField @bind-Value="Node.Value.Content"
+                          Label="Content"
+                          Class="mb-2" />
+            <MudStack Row>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                               Color="Color.Error"
+                               OnClick="@(() => OnRemove.InvokeAsync(Node))" />
+                <MudIconButton Icon="@Icons.Material.Filled.Add"
+                               Color="Color.Success"
+                               OnClick="@(() => OnAdd.InvokeAsync(Node))" />
+            </MudStack>
+        </MudItem>
+    </MudGrid>
+</MudPaper>
+
+@if (Node.Children.Any())
+{
+    @foreach (var childNode in Node.Children)
+    {
+        <BillElementTreeNode Node="@childNode" OnRemove="OnRemove" OnAdd="OnAdd" />
+    }
+}
+
+@code {
+
+    [Parameter]
+    [EditorRequired]
+    public BillElementNode Node { get; set; } = null!;
+
+    [Parameter]
+    [EditorRequired]
+    public EventCallback<BillElementNode> OnRemove { get; set; }
+
+    [Parameter]
+    [EditorRequired]
+    public EventCallback<BillElementNode> OnAdd { get; set; }
+
+    private BillElementType[] GetAllowedTypes(BillElementType type) => BillElementTypeUtility.DropDownAllowedTypes[type].ToArray();
+}

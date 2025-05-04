@@ -1,6 +1,8 @@
 ﻿@page "/bill-parser/{id:int}"
 
 @using MudBlazor
+@using Statesman.BillParser.Client.Models.BillElements
+@using Statesman.BillParser.Client.Utilities
 
 @inject IBillsService billsService
 
@@ -9,113 +11,160 @@
         <MudText Typo="Typo.h4" Class="mb-4">Legislation Builder</MudText>
 
         <MudTextField @bind-Value="lawTitle"
-                      Label="Law Title"
-                      Variant="Variant.Outlined"
-                      Class="mb-4" />
+        Label="Law Title"
+        Variant="Variant.Outlined"
+        Class="mb-4" />
 
         <MudTextField @bind-Value="legalBasis"
-                      Label="Legal Basis"
-                      Variant="Variant.Outlined"
-                      Lines="5"
-                      Class="mb-4" />
+        Label="Legal Basis"
+        Variant="Variant.Outlined"
+        Lines="5"
+        Class="mb-4" />
 
         <MudTextField @bind-Value="promulgation"
-                      Label="Promulgation"
-                      Variant="Variant.Outlined"
-                      Lines="3"
-                      Class="mb-4" />
+        Label="Promulgation"
+        Variant="Variant.Outlined"
+        Lines="3"
+        Class="mb-4" />
 
         <MudText Typo="Typo.h5" Class="mb-4">Bill Content</MudText>
-        @foreach (var element in legislativeElements)
+
+        @foreach (var node in billElementForest)
         {
-            <MudPaper Class="pa-4 mb-3" Style="@($"margin-left: {element.Level * 20}px")">
-                <MudGrid>
-                    <MudItem xs="12">
-                        <MudSelect T="string" Label="Element Type"
-                                   @bind-Value="element.Type"
-                                   Variant="Variant.Outlined"
-                                   Class="mb-2">
-                            @foreach (var type in GetAllowedTypes(element))
-                            {
-                                <MudSelectItem Value="@type">@type</MudSelectItem>
-                            }
-                        </MudSelect>
-
-                        @if (element.Type == "Chapter" || element.Type == "Paragraph" || element.Type == "Section")
-                        {
-                            <MudText Class="mb-2">Number: @element.Number</MudText>
-                            <MudTextField @bind-Value="element.Title"
-                                          Label="Title"
-                                          Class="mb-2" />
-                        }
-                        else if (element.Type == "Article")
-                        {
-                            <MudText Class="mb-2">Article @element.Number</MudText>
-                            <MudTextField @bind-Value="element.Content"
-                                          Label="Content"
-                                          Lines="3"
-                                          Class="mb-2" />
-                        }
-                        else if (element.Type == "Item")
-                        {
-                            <MudText Class="mb-2">Item @element.Number</MudText>
-                            <MudTextField @bind-Value="element.Content"
-                                          Label="Content"
-                                          Lines="2"
-                                          Class="mb-2" />
-                        }
-                        else if (element.Type == "Letter")
-                        {
-                            <MudText Class="mb-2">Letter @element.Letter</MudText>
-                            <MudTextField @bind-Value="element.Content"
-                                          Label="Content"
-                                          Lines="2"
-                                          Class="mb-2" />
-                        }
-
-                        <MudStack Row>
-                            <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                                           Color="Color.Error"
-                                           OnClick="@(() => RemoveElement(element))" />
-
-                            <MudIconButton Icon="@Icons.Material.Filled.Add"
-                                           Color="Color.Success"
-                                           OnClick="@(() => AddSubElement(element))" />
-                        </MudStack>
-                    </MudItem>
-                </MudGrid>
-            </MudPaper>
+            <BillElementTreeNode Node="node" OnAdd="AddSubElement" OnRemove="RemoveElement"></BillElementTreeNode>
         }
 
+        @* 
+        <MudDropContainer T="BillElementNode"
+                          Items="billElementForest"
+                          ItemsSelector="@((item, dropzone) => item.Value.Type.ToString() == dropzone)"
+                          Class="d-flex flex-column">
+            <ChildContent>
+                @if (billElementForest.Any())
+                {
+                    <MudDropZone T="BillElementNode"
+                                 Identifier="@(billElementForest.FirstOrDefault()!.Value.Type.ToString())"
+                                 Class="pa-2"
+                                 Style="min-height: 50px;"
+                                 AllowReorder="true">
+                    </MudDropZone>
+                }
+            </ChildContent>
+            <ItemRenderer>
+            </ItemRenderer>
+        </MudDropContainer> *@
+
         <MudButton StartIcon="@Icons.Material.Filled.Add"
-                   Color="Color.Primary"
-                   Variant="Variant.Filled"
-                   OnClick="@AddTopLevelElement"
-                   Class="mt-4">
+        Color="Color.Primary"
+        Variant="Variant.Filled"
+        OnClick="@AddTopLevelElement"
+        Class="mt-4">
             Add New Element
         </MudButton>
 
         <MudTextField @bind-Value="motives"
-                      Label="Motives"
-                      Variant="Variant.Outlined"
-                      Lines="5"
-                      Class="mb-4" />
+        Label="Motives"
+        Variant="Variant.Outlined"
+        Lines="5"
+        Class="mb-4" />
 
         <MudTextField @bind-Value="assessments"
-                      Label="Assessments"
-                      Variant="Variant.Outlined"
-                      Lines="5"
-                      Class="mb-4" />
+        Label="Assessments"
+        Variant="Variant.Outlined"
+        Lines="5"
+        Class="mb-4" />
 
         <MudDivider Class="my-4" />
 
         <MudButton Color="Color.Secondary"
-                   Variant="Variant.Filled"
-                   OnClick="SaveLegislation">
+        Variant="Variant.Filled"
+        OnClick="SaveLegislation">
             Save Legislation
         </MudButton>
+
+        @*   <MudDropContainer T="LegislativeElement"
+                          Items="legislativeElements"
+                          ItemsSelector="@((item, dropzone) => item.Level.ToString() == dropzone)"
+                          ItemDropped="HandleItemDropped"
+                          Class="d-flex flex-column">
+            <ChildContent>
+                @for (int i = 0; i <= MaxLevel; i++)
+                {
+                    var level = i;  // Capture for lambda
+                    <MudDropZone T="LegislativeElement"
+                                 Identifier="@level.ToString()"
+                                 Class="pa-2"
+                                 Style="min-height: 50px;"
+                                 AllowReorder="true">
+                        <MudText Typo="Typo.subtitle1" Class="mb-2">Level @level Elements</MudText>
+                    </MudDropZone>
+                }
+            </ChildContent>
+            <ItemRenderer>
+                <MudPaper Class="pa-4 mb-3" Style="@($"margin-left: {context.Level * 20}px")">
+                    <MudGrid>
+                        <MudItem xs="12">
+                            <MudSelect T="string" Label="Element Type"
+                                       @bind-Value="context.Type"
+                                       Variant="Variant.Outlined"
+                                       Class="mb-2">
+                                @foreach (var type in GetAllowedTypes(context))
+                                {
+                                    <MudSelectItem Value="@type">@type</MudSelectItem>
+                                }
+                            </MudSelect>
+
+                            @if (context.Type == "Chapter" || context.Type == "Paragraph" || context.Type == "Section")
+                            {
+                                <MudText Class="mb-2">Number: @context.Number</MudText>
+                                <MudTextField @bind-Value="context.Title"
+                                              Label="Title"
+                                              Class="mb-2" />
+                            }
+                            else if (context.Type == "Article")
+                            {
+                                <MudText Class="mb-2">Article @context.Number</MudText>
+                                <MudTextField @bind-Value="context.Content"
+                                              Label="Content"
+                                              Lines="3"
+                                              Class="mb-2" />
+                            }
+                            else if (context.Type == "Item")
+                            {
+                                <MudText Class="mb-2">Item @context.Number</MudText>
+                                <MudTextField @bind-Value="context.Content"
+                                              Label="Content"
+                                              Lines="2"
+                                              Class="mb-2" />
+                            }
+                            else if (context.Type == "Letter")
+                            {
+                                <MudText Class="mb-2">Letter @context.Letter</MudText>
+                                <MudTextField @bind-Value="context.Content"
+                                              Label="Content"
+                                              Lines="2"
+                                              Class="mb-2" />
+                            }
+
+                            <MudStack Row>
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                               Color="Color.Error"
+                                               OnClick="@(() => RemoveElement(context))" />
+
+                                <MudIconButton Icon="@Icons.Material.Filled.Add"
+                                               Color="Color.Success"
+                                               OnClick="@(() => AddSubElement(context))" />
+                            </MudStack>
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+            </ItemRenderer>
+        </MudDropContainer> *@
     </MudPaper>
 </MudContainer>
+
+@functions {
+}
 
 @code {
     private string? lawTitle;
@@ -125,6 +174,10 @@
     private string? assessments;
 
     private List<LegislativeElement> legislativeElements = new();
+    private List<BillElementNode> billElementForest = new();
+
+    // Track the maximum level for drop zones
+    private int MaxLevel => legislativeElements.Any() ? legislativeElements.Max(e => e.Level) : 0;
 
     private class LegislativeElement
     {
@@ -152,180 +205,96 @@
     [Parameter]
     public int Id { get; set; }
 
-    private string[] GetAllowedTypes(LegislativeElement element)
-    {
-        if (element.Level == 0)
-            return new[] { "Chapter", "Paragraph" };
-
-        if (element.Parent?.Type == "Chapter")
-            return new[] { "Section", "Paragraph" };
-
-        if (element.Parent?.Type == "Section")
-            return new[] { "Paragraph" };
-
-        if (element.Parent?.Type == "Paragraph")
-            return new[] { "Item" };
-
-        if (element.Parent?.Type == "Item")
-            return new[] { "Letter" };
-
-        if (element.Parent?.Type == "Item")
-            return new[] { "Letter" };
-
-        return new[] { "Misc" };
-    }
-
-    private List<LegislativeElement> GetSiblings(LegislativeElement element)
-    {
-        return legislativeElements.Where(e =>
-            e.Level == element.Level &&
-            e.Parent?.Id == element.Parent?.Id &&
-            e.Type == element.Type).ToList();
-    }
-
-    private int GetNextNumber(LegislativeElement element)
-    {
-        var siblings = GetSiblings(element);
-
-        if (!siblings.Any())
-            return 1;
-
-        var lastNumber = siblings.Max(s => s.Number);
-        return lastNumber + 1;
-    }
-
-    private char GetNextLetter(LegislativeElement element)
-    {
-        var siblings = GetSiblings(element);
-
-        if (!siblings.Any())
-            return 'A';
-
-        var lastLetter = siblings.Max(s => s.Letter);
-
-        return (char)(lastLetter + 1);
-    }
-
     private void AddTopLevelElement()
     {
-        var newElement = new LegislativeElement
+        var newEl = new BillElement
             {
-                Level = 0,
-                Number = GetNextNumber(new LegislativeElement { Level = 0 })
+                Content = string.Empty,
+                Marker = string.Empty,
+                Type = BillElementType.Chapter
             };
 
-        InsertElementInOrder(newElement);
+        var lastNode = billElementForest.LastOrDefault();
+        SetMarker(newEl, lastNode?.Value);
+
+        billElementForest.Add(new BillElementNode(newEl));
     }
 
-    private void AddSubElement(LegislativeElement parent)
+    private void AddSubElement(BillElementNode parent)
     {
-        var newElement = new LegislativeElement
+        var newChild = new BillElement
             {
-                Level = parent.Level + 1,
-                Parent = parent,
-                Type = parent.Type == "Article" ? "Item" :
-                                               parent.Type == "Item" ? "Letter" : "Article"
+                Content = string.Empty,
+                Marker = string.Empty,
+            //TODO: Solution for Letter type
+                Type = BillElementTypeUtility.DefaultTypes[parent.Value.Type]
             };
 
-        // Reset numbering for child elements
-        if (newElement.Type == "Letter")
+        var lastChild = parent.Children.LastOrDefault();
+        SetMarker(newChild, lastChild?.Value);
+
+        parent.AddChild(newChild);
+    }
+
+    private void RemoveElement(BillElementNode node)
+    {
+        if (node.Parent == null)
         {
-            newElement.Letter = GetNextLetter(newElement);
+            billElementForest.Remove(node);
+            RenumberForestElements();
+            return;
         }
         else
         {
-            newElement.Number = GetNextNumber(newElement);
+            node.Parent.RemoveChild(node);
         }
-
-        InsertElementInOrder(newElement);
     }
 
-    private void InsertElementInOrder(LegislativeElement newElement)
+    private void SetMarker(BillElement newChild, BillElement? lastChild)
     {
-        var siblings = GetSiblings(newElement);
-        var insertIndex = legislativeElements.Count;
-
-        if (siblings.Any())
+        if (lastChild != null)
         {
-            var lastSibling = siblings.Last();
-            insertIndex = legislativeElements.IndexOf(lastSibling) + 1;
-
-            // Find the correct position based on number/letter
-            foreach (var sibling in siblings)
+            var markerIsInt = int.TryParse(lastChild.Marker, out var intMarker);
+            if (markerIsInt)
             {
-                if (CompareElements(newElement, sibling) < 0)
-                {
-                    insertIndex = legislativeElements.IndexOf(sibling);
-                    break;
-                }
+                intMarker++;
+                newChild.Marker = intMarker.ToString();
+            }
+            else
+            {
+                var charMarker = lastChild.Marker[0];
+                charMarker++;
+                lastChild.Marker = charMarker.ToString();
             }
         }
-        else if (newElement.Parent != null)
+        else
         {
-            // Insert after parent if this is the first child
-            insertIndex = legislativeElements.IndexOf(newElement.Parent) + 1;
+            var marker = newChild.Type == BillElementType.Letter ? "A" : "1";
+            newChild.Marker = marker;
         }
-
-        legislativeElements.Insert(insertIndex, newElement);
     }
 
-    private int CompareElements(LegislativeElement a, LegislativeElement b)
+    private void RenumberForestElements()
     {
-        if (a.Type == "Letter" && b.Type == "Letter")
-            return string.Compare(a.Letter.ToString(), b.Letter.ToString());
+        var useLetters = false;
+        if (billElementForest.Count > 0)
+            useLetters = billElementForest[0].Value.Type == BillElementType.Letter;
 
-        return a.Number.CompareTo(b.Number);
-    }
-
-    private void RemoveElement(LegislativeElement element)
-    {
-        // Remove element and all its children
-        var elementsToRemove = legislativeElements
-            .Where(e => IsChildOf(e, element) || e == element)
-            .ToList();
-
-        foreach (var elementToRemove in elementsToRemove)
+        for (int i = 0; i < billElementForest.Count; i++)
         {
-            legislativeElements.Remove(elementToRemove);
-        }
-
-        RenumberElements();
-    }
-
-    private void RenumberElements()
-    {
-        var groups = legislativeElements.GroupBy(e => new { e.Level, e.Parent?.Id, e.Type });
-        foreach (var group in groups)
-        {
-            var number = 1;
-            var letter = 'A';
-            foreach (var element in group.OrderBy(e => e.Type == "Letter" ? e.Letter : e.Number))
+            if (useLetters)
             {
-                if (element.Type == "Letter")
-                {
-                    element.Letter = letter;
-                    letter++;
-                }
-                else
-                {
-                    element.Number = number;
-                    number++;
-                }
+                char letter = (char)('a' + i);
+                billElementForest[i].Value.Marker = letter.ToString();
+            }
+            else
+            {
+                billElementForest[i].Value.Marker = (i + 1).ToString();
             }
         }
     }
 
-    private bool IsChildOf(LegislativeElement potential, LegislativeElement parent)
-    {
-        var current = potential.Parent;
-        while (current != null)
-        {
-            if (current.Id == parent.Id)
-                return true;
-            current = current.Parent;
-        }
-        return false;
-    }
+    private string[] GetAllowedTypes(BillElementType type) => BillElementTypeUtility.DropDownAllowedTypes[type].Select(t => t.ToString()).ToArray();
 
     private async Task SaveLegislation()
     {

@@ -1,0 +1,6 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Don't change anything in the API. In the client project, whenever you need some sort of data from the API, just make a call to the API with the dto you need and I will do the changes in the API myself.
