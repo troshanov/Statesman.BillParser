@@ -4,10 +4,12 @@
 <MudPaper Class="pa-4 mb-3">
     <MudGrid>
         <MudItem xs="12">
-            <MudSelect T="BillElementType" Label="Element Type"
-                       @bind-Value="Node.Value.Type"
+            <MudSelect T="BillElementType"
+                       Label="Element Type"
                        Variant="Variant.Outlined"
-                       Class="mb-2">
+                       Class="mb-2"
+                       @attributes="@(Node.Parent?.Children.Count > 1? new Dictionary<string, object>{{"ReadOnly", true}} : null)"
+                       @bind-Value="Node.Value.Type">
                 @foreach (var type in GetAllowedTypes(Node.Value.Type))
                 {
                     <MudSelectItem Value="@type">@type.ToString()</MudSelectItem>
@@ -32,10 +34,12 @@
 
 @if (Node.Children.Any())
 {
-    @foreach (var childNode in Node.Children)
-    {
-        <BillElementTreeNode Node="@childNode" OnRemove="OnRemove" OnAdd="OnAdd" />
-    }
+    <div class="ml-8">
+        @foreach (var childNode in Node.Children)
+        {
+            <BillElementTreeNode Node="@childNode" OnRemove="OnRemove" OnAdd="OnAdd" />
+        }
+    </div>
 }
 
 @code {
