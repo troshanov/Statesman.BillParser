@@ -1,4 +1,4 @@
-﻿@using Statesman.BillParser.Client.Models.BillElements
+﻿@using Statesman.BillParser.Shared.Models.BillElements;
 @using Statesman.BillParser.Client.Utilities
 
 <MudPaper Class="pa-4 mb-3">
@@ -17,8 +17,8 @@
             </MudSelect>
 
             <MudText Class="mb-2">@Node.Value.Marker</MudText>
-            <MudTextField @bind-Value="Node.Value.Content"
-                          Label="Content"
+            <MudTextField @bind-Value="Node.Value.Text"
+                          Label="Text"
                           Class="mb-2" />
             <MudStack Row>
                 <MudIconButton Icon="@Icons.Material.Filled.Delete"

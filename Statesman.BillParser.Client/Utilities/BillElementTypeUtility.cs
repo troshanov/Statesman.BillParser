@@ -1,4 +1,4 @@
-﻿using Statesman.BillParser.Client.Models.BillElements;
+﻿using Statesman.BillParser.Shared.Models.BillElements;
 namespace Statesman.BillParser.Client.Utilities;
 public static class BillElementTypeUtility
 {

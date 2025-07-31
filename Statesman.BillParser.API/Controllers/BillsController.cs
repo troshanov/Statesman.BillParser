@@ -36,5 +36,12 @@ namespace Statesman.BillParser.API.Controllers
             var result = await _billRepository.GetBillByIdAsync(id);
             return Ok(_mapper.Map<BillDto>(result));
         }
+
+        [HttpPut]
+        public async Task<IActionResult> UpdateBill([FromBody] BillDto billDto)
+        {
+
+            return NoContent();
+        }
     }
 }

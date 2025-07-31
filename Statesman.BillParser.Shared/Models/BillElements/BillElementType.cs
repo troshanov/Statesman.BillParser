@@ -1,4 +1,4 @@
-﻿namespace Statesman.BillParser.Client.Models.BillElements;
+﻿namespace Statesman.BillParser.Shared.Models.BillElements;
 
 public enum BillElementType
 {

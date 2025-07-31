@@ -7,18 +7,15 @@ namespace Statesman.BillParser.Client.Services;
 public class BillsService : IBillsService
 {
     private readonly HttpClient _httpClient;
+
     public BillsService(HttpClient httpClient)
     {
         _httpClient = httpClient;
     }
 
-    public Task<BillDto?> GetBillAsync(int id)
-    {
-        return _httpClient.GetFromJsonAsync<BillDto>($"api/bills/{id}");
-    }
+    public async Task<BillDto?> GetBillAsync(int id)
+        => await _httpClient.GetFromJsonAsync<BillDto>($"api/bills/{id}");
 
     public async Task<IEnumerable<BillDto>?> GetUnparsedBillsAsync()
-    {
-        return await _httpClient.GetFromJsonAsync<IEnumerable<BillDto>>("api/bills/unparsed");
-    }
+        => await _httpClient.GetFromJsonAsync<IEnumerable<BillDto>>("api/bills/unparsed");
 }

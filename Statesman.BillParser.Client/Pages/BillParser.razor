@@ -1,7 +1,7 @@
 ﻿@page "/bill-parser/{id:int}"
 
 @using MudBlazor
-@using Statesman.BillParser.Client.Models.BillElements
+@using Statesman.BillParser.Shared.Models.BillElements;
 @using Statesman.BillParser.Client.Utilities
 
 @inject IBillsService billsService
@@ -27,7 +27,7 @@
         Lines="3"
         Class="mb-4" />
 
-        <MudText Typo="Typo.h5" Class="mb-4">Bill Content</MudText>
+        <MudText Typo="Typo.h5" Class="mb-4">Bill Text</MudText>
 
         @foreach (var node in billElementForest)
         {
@@ -91,7 +91,7 @@
     {
         var newEl = new BillElement
             {
-                Content = string.Empty,
+                Text = string.Empty,
                 Marker = string.Empty,
                 Type = BillElementType.Chapter
             };
@@ -107,7 +107,7 @@
     {
         var newChild = new BillElement
             {
-                Content = string.Empty,
+                Text = string.Empty,
                 Marker = string.Empty,
             //TODO: Solution for Letter type
                 Type = BillElementTypeUtility.DefaultTypes[parent.Value.Type]
