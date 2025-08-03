@@ -55,12 +55,6 @@ coverage/
 # Azure related
 .azure/*
 
-# Blazor WebAssembly specific
-wwwroot/
-wwwroot/css/
-wwwroot/js/
-wwwroot/lib/
-
 # ASP.NET Core specific
 Properties/launchSettings.json
 
