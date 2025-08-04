@@ -4,6 +4,7 @@ namespace Statesman.BillParser.Client.Services.Interfaces;
 
 public interface IBillsService
 {
-    Task<IEnumerable<BillDto>?> GetUnparsedBillsAsync();
-    Task<BillDto?> GetBillAsync(int id);
+    Task<IEnumerable<UnparsedBillDto>?> GetUnparsedBillsAsync();
+    Task<UnparsedBillDto?> GetBillAsync(int id);
+    Task<bool> SaveLegislationAsync(ParsedBillDto legislation);
 }

@@ -12,8 +12,7 @@ builder.Services.AddOpenApi();
 // Add AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
-var neo4jClient = await builder.Services.AddDataLayer(builder.Configuration);
-
+await builder.Services.AddDataLayer(builder.Configuration);
 
 var app = builder.Build();
 

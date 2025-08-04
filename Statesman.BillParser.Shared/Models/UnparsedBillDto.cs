@@ -1,6 +1,6 @@
 ﻿namespace Statesman.BillParser.Shared.Models;
 
-public class BillDto
+public class UnparsedBillDto
 {
     public int Id { get; set; }
     public string Title { get; set; } = null!;

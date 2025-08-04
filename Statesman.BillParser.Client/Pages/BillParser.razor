@@ -2,6 +2,7 @@
 
 @using MudBlazor
 @using Statesman.BillParser.Shared.Models.BillElements;
+@using Statesman.BillParser.Shared.Models;
 @using Statesman.BillParser.Client.Utilities
 
 @inject IBillsService billsService
@@ -10,18 +11,18 @@
     <MudPaper Class="pa-4">
         <MudText Typo="Typo.h4" Class="mb-4">Legislation Builder</MudText>
 
-        <MudTextField @bind-Value="lawTitle"
+        <MudTextField @bind-Value="LawTitle"
         Label="Law Title"
         Variant="Variant.Outlined"
         Class="mb-4" />
 
-        <MudTextField @bind-Value="legalBasis"
+        <MudTextField @bind-Value="LegalBasis"
         Label="Legal Basis"
         Variant="Variant.Outlined"
         Lines="5"
         Class="mb-4" />
 
-        <MudTextField @bind-Value="promulgation"
+        <MudTextField @bind-Value="Promulgation"
         Label="Promulgation"
         Variant="Variant.Outlined"
         Lines="3"
@@ -42,13 +43,13 @@
             Add New Element
         </MudButton>
 
-        <MudTextField @bind-Value="motives"
+        <MudTextField @bind-Value="Motives"
         Label="Motives"
         Variant="Variant.Outlined"
         Lines="5"
         Class="mb-4" />
 
-        <MudTextField @bind-Value="assessments"
+        <MudTextField @bind-Value="Assessments"
         Label="Assessments"
         Variant="Variant.Outlined"
         Lines="5"
@@ -65,27 +66,23 @@
 </MudContainer>
 
 @code {
-    private string? lawTitle;
-    private string? legalBasis;
-    private string? promulgation;
-    private string? motives;
-    private string? assessments;
-
+    public string LawTitle {get; set;}
+    public string? LegalBasis { get; set; }
+    public string? Promulgation { get; set; }
+    public string? Motives { get; set; }
+    public string? Assessments { get; set; }
     private List<BillElementNode> billElementForest = new();
 
     public override async Task SetParametersAsync(ParameterView parameters)
     {
         await base.SetParametersAsync(parameters);
 
-        if (Id != 0)
-        {
-            var bill = await billsService.GetBillAsync(Id);
-            lawTitle = bill.Title;
-        }
+        var bill = await billsService.GetBillAsync(Id);
+        LawTitle = bill.Title;
     }
 
     [Parameter]
-    public int Id { get; set; }
+    public required int Id { get; set; }
 
     private void AddTopLevelElement()
     {
@@ -179,7 +176,28 @@
 
     private async Task SaveLegislation()
     {
-        // TODO: Implement save logic
-        await Task.CompletedTask;
+        var legislation = new ParsedBillDto
+        {
+            Id = Id,
+            LawTitle = LawTitle,
+            LegalBasis = LegalBasis,
+            Promulgation = Promulgation,
+            Motives = Motives,
+            Assessments = Assessments,
+            BillElements = billElementForest
+        };
+
+        var success = await billsService.SaveLegislationAsync(legislation);
+        
+        if (success)
+        {
+            // TODO: Show success message to user
+            // You might want to use MudBlazor's ISnackbar service here
+        }
+        else
+        {
+            // TODO: Show error message to user
+            // You might want to use MudBlazor's ISnackbar service here
+        }
     }
 }
