@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Statesman.BillParser.Shared.Models;
 using Statesman.BillParser.Shared.Models.BillElements;
+using Statesman.BillScraper.Data.Models;
 using Statesman.BillScraper.Data.Repositories.Interfaces;
 
 namespace Statesman.BillParser.API.Controllers
@@ -39,31 +40,26 @@ namespace Statesman.BillParser.API.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateBill([FromBody] ParsedBillDto legislation)
+        public async Task<IActionResult> UpdateBill([FromBody] ParsedBillDto parsedBill)
         {
             try
             {
                 // Get the existing bill from the database
-                var existingBill = await _billRepository.GetBillByIdAsync(legislation.Id);
-                if (existingBill == null)
+                var billEntity = await _billRepository.GetBillByIdAsync(parsedBill.Id);
+                if (billEntity == null)
                 {
                     return NotFound(new { success = false, message = "Bill not found" });
                 }
 
-                // Update bill properties
-                existingBill.Title = legislation.LawTitle;
-                existingBill.IsParsed = true;
-                existingBill.ParsedAt = DateTime.UtcNow;
-
-                // Clear existing bill elements
-                existingBill.BillElements.Clear();
-
-                // Map and add new bill elements
-                foreach (var elementNode in legislation.BillElements)
+                // Add new bill elements
+                foreach (var elementNode in parsedBill.BillElements)
                 {
-                    var contextElement = MapBillElementNodeToContext(elementNode, existingBill);
-                    existingBill.BillElements.Add(contextElement);
+                    var contextElement = AddBillElementsToDatabase(elementNode, billEntity);
                 }
+
+                // Update bill properties
+                billEntity.IsParsed = true;
+                billEntity.ParsedAt = DateTime.UtcNow;
 
                 // TODO: Save the updated bill using the repository
                 // await _billRepository.SaveAsync(existingBill);
@@ -76,31 +72,32 @@ namespace Statesman.BillParser.API.Controllers
             }
         }
 
-        private Statesman.BillScraper.Data.Models.BillElement MapBillElementNodeToContext(
-            BillElementNode elementNode, 
-            Statesman.BillScraper.Data.Models.Bill bill)
+        private BillElementEntity AddBillElementsToDatabase(
+            BillElementNode elementNode,
+            BillEntity bill)
         {
             // Create the appropriate context element based on type
-            Statesman.BillScraper.Data.Models.BillElement contextElement = elementNode.Value.Type switch
+            BillElementEntity contextElement = elementNode.Value.Type switch
             {
-                BillElementType.Chapter => new Statesman.BillScraper.Data.Models.Chapter(
-                    elementNode.Value.Text, 
+                BillElementType.Chapter => new ChapterEntity(
+                    elementNode.Value.Text,
                     elementNode.Value.Marker),
-                BillElementType.Section => new Statesman.BillScraper.Data.Models.Section(
-                    elementNode.Value.Text, 
+                BillElementType.Section => new SectionEntity(
+                    elementNode.Value.Text,
                     elementNode.Value.Marker),
-                BillElementType.Article => new Statesman.BillScraper.Data.Models.Article(
-                    elementNode.Value.Text, 
+                BillElementType.Article => new ArticleEntity(
+                    elementNode.Value.Text,
                     elementNode.Value.Marker),
-                BillElementType.Paragraph => new Statesman.BillScraper.Data.Models.Paragraph(
-                    elementNode.Value.Text, 
+                BillElementType.Paragraph => new ParagraphEntity(
+                    elementNode.Value.Text,
                     elementNode.Value.Marker),
-                BillElementType.Point => new Statesman.BillScraper.Data.Models.Point(
-                    elementNode.Value.Text, 
+                BillElementType.Point => new PointEntity(
+                    elementNode.Value.Text,
                     elementNode.Value.Marker),
-                BillElementType.Letter => new Statesman.BillScraper.Data.Models.Letter(
-                    elementNode.Value.Text, 
+                BillElementType.Letter => new LetterEntity(
+                    elementNode.Value.Text,
                     elementNode.Value.Marker),
+
                 _ => throw new ArgumentException($"Unknown BillElementType: {elementNode.Value.Type}")
             };
 
@@ -110,7 +107,7 @@ namespace Statesman.BillParser.API.Controllers
             // Recursively map child elements
             foreach (var childNode in elementNode.Children)
             {
-                var childElement = MapBillElementNodeToContext(childNode, bill);
+                var childElement = AddBillElementsToDatabase(childNode, bill);
                 childElement.ParentElement = contextElement;
                 contextElement.ChildElements.Add(childElement);
             }
