@@ -32,7 +32,7 @@
 
         @foreach (var node in billElementForest)
         {
-            <BillElementTreeNode Node="node" OnAdd="AddSubElement" OnRemove="RemoveElement"></BillElementTreeNode>
+            <BillElementTreeNode @key="node" Node="node" OnAdd="AddSubElement" OnRemove="RemoveElement"></BillElementTreeNode>
         }
         
         <MudButton StartIcon="@Icons.Material.Filled.Add"
@@ -97,7 +97,6 @@
         SetMarker(newEl, lastNode?.Value);
                     
         billElementForest.Add(new BillElementNode(newEl));
-        StateHasChanged();
     }
 
     private void AddSubElement(BillElementNode parent)

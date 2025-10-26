@@ -8,9 +8,9 @@
                        Label="Element Type"
                        Variant="Variant.Outlined"
                        Class="mb-2"
-                       @attributes="@(Node.Parent?.Children.Count > 1? new Dictionary<string, object>{{"ReadOnly", true}} : null)"
+                       ReadOnly="@(Node.Children.Any())"
                        @bind-Value="Node.Value.Type">
-                @foreach (var type in GetAllowedTypes(Node.Value.Type))
+                @foreach (var type in GetAllowedTypes(Node.Parent?.Value.Type ?? BillElementType.Chapter))
                 {
                     <MudSelectItem Value="@type">@type.ToString()</MudSelectItem>
                 }
@@ -37,7 +37,7 @@
     <div class="ml-8">
         @foreach (var childNode in Node.Children)
         {
-            <BillElementTreeNode Node="@childNode" OnRemove="OnRemove" OnAdd="OnAdd" />
+            <BillElementTreeNode @key="childNode" Node="@childNode" OnRemove="OnRemove" OnAdd="OnAdd" />
         }
     </div>
 }
@@ -56,5 +56,11 @@
     [EditorRequired]
     public EventCallback<BillElementNode> OnAdd { get; set; }
 
-    private BillElementType[] GetAllowedTypes(BillElementType type) => BillElementTypeUtility.DropDownAllowedTypes[type].ToArray();
+    private BillElementType[] GetAllowedTypes(BillElementType type)
+    {
+        if (Node.Parent == null)
+            return BillElementTypeUtility.RootDropDownAllowedTypes[type].ToArray();
+
+        return BillElementTypeUtility.ChildDropDownAllowedTypes[type].ToArray();
+    }
 }

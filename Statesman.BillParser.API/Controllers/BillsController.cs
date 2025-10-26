@@ -74,7 +74,7 @@ namespace Statesman.BillParser.API.Controllers
 
         private BillElementEntity AddBillElementsToDatabase(
             BillElementNode elementNode,
-            BillEntity bill)
+            BillEntity? bill = null)
         {
             // Create the appropriate context element based on type
             BillElementEntity contextElement = elementNode.Value.Type switch
@@ -102,12 +102,15 @@ namespace Statesman.BillParser.API.Controllers
             };
 
             // Set the bill reference
-            contextElement.Bill = bill;
+            if (bill != null)
+            {
+                contextElement.Bill = bill;
+            }
 
             // Recursively map child elements
             foreach (var childNode in elementNode.Children)
             {
-                var childElement = AddBillElementsToDatabase(childNode, bill);
+                var childElement = AddBillElementsToDatabase(childNode);
                 childElement.ParentElement = contextElement;
                 contextElement.ChildElements.Add(childElement);
             }
