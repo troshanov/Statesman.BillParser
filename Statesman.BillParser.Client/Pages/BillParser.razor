@@ -12,61 +12,61 @@
         <MudText Typo="Typo.h4" Class="mb-4">Legislation Builder</MudText>
 
         <MudTextField @bind-Value="LawTitle"
-        Label="Law Title"
-        Variant="Variant.Outlined"
-        Class="mb-4" />
+                      Label="Law Title"
+                      Variant="Variant.Outlined"
+                      Class="mb-4" />
 
         <MudTextField @bind-Value="LegalBasis"
-        Label="Legal Basis"
-        Variant="Variant.Outlined"
-        Lines="5"
-        Class="mb-4" />
+                      Label="Legal Basis"
+                      Variant="Variant.Outlined"
+                      Lines="5"
+                      Class="mb-4" />
 
         <MudTextField @bind-Value="Promulgation"
-        Label="Promulgation"
-        Variant="Variant.Outlined"
-        Lines="3"
-        Class="mb-4" />
+                      Label="Promulgation"
+                      Variant="Variant.Outlined"
+                      Lines="3"
+                      Class="mb-4" />
 
         <MudText Typo="Typo.h5" Class="mb-4">Bill Text</MudText>
 
         @foreach (var node in billElementForest)
         {
-            <BillElementTreeNode @key="node" Node="node" OnAdd="AddSubElement" OnRemove="RemoveElement"></BillElementTreeNode>
+            <BillElementTreeNode Node="node" OnAdd="AddSubElement" OnRemove="RemoveElement"></BillElementTreeNode>
         }
-        
+
         <MudButton StartIcon="@Icons.Material.Filled.Add"
-        Color="Color.Primary"
-        Variant="Variant.Filled"
-        OnClick="@AddTopLevelElement"
-        Class="mt-4">
+                   Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   OnClick="@AddTopLevelElement"
+                   Class="mt-4">
             Add New Element
         </MudButton>
 
         <MudTextField @bind-Value="Motives"
-        Label="Motives"
-        Variant="Variant.Outlined"
-        Lines="5"
-        Class="mb-4" />
+                      Label="Motives"
+                      Variant="Variant.Outlined"
+                      Lines="5"
+                      Class="mb-4" />
 
         <MudTextField @bind-Value="Assessments"
-        Label="Assessments"
-        Variant="Variant.Outlined"
-        Lines="5"
-        Class="mb-4" />
+                      Label="Assessments"
+                      Variant="Variant.Outlined"
+                      Lines="5"
+                      Class="mb-4" />
 
         <MudDivider Class="my-4" />
 
         <MudButton Color="Color.Secondary"
-        Variant="Variant.Filled"
-        OnClick="SaveLegislation">
+                   Variant="Variant.Filled"
+                   OnClick="SaveLegislation">
             Save Legislation
         </MudButton>
     </MudPaper>
 </MudContainer>
 
 @code {
-    public string LawTitle {get; set;}
+    public string LawTitle { get; set; }
     public string? LegalBasis { get; set; }
     public string? Promulgation { get; set; }
     public string? Motives { get; set; }
@@ -87,27 +87,22 @@
     private void AddTopLevelElement()
     {
         var newEl = new BillElement
-            {
-                Text = string.Empty,
-                Marker = string.Empty,
-                Type = BillElementType.Chapter
-            };
+        {
+            Type = BillElementType.Chapter
+        };
 
         var lastNode = billElementForest.LastOrDefault();
         SetMarker(newEl, lastNode?.Value);
-                    
+
         billElementForest.Add(new BillElementNode(newEl));
     }
 
     private void AddSubElement(BillElementNode parent)
     {
         var newChild = new BillElement
-            {
-                Text = string.Empty,
-                Marker = string.Empty,
-            //TODO: Solution for Letter type
-                Type = BillElementTypeUtility.DefaultTypes[parent.Value.Type]
-            };
+        {
+            Type = BillElementTypeUtility.DefaultTypes[parent.Value.Type]
+        };
 
         var lastChild = parent.Children.LastOrDefault();
         SetMarker(newChild, lastChild?.Value);
@@ -146,11 +141,6 @@
                 newChild.Marker = charMarker.ToString();
             }
         }
-        else
-        {
-            var marker = newChild.Type == BillElementType.Letter ? "A" : "1";
-            newChild.Marker = marker;
-        }
     }
 
     private void RenumberForestElements()
@@ -187,7 +177,7 @@
         };
 
         var success = await billsService.SaveLegislationAsync(legislation);
-        
+
         if (success)
         {
             // TODO: Show success message to user

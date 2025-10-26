@@ -26,6 +26,7 @@
                                OnClick="@(() => OnRemove.InvokeAsync(Node))" />
                 <MudIconButton Icon="@Icons.Material.Filled.Add"
                                Color="Color.Success"
+                               Disabled="Node.Value.Type == BillElementType.Letter"
                                OnClick="@(() => OnAdd.InvokeAsync(Node))" />
             </MudStack>
         </MudItem>
@@ -37,7 +38,7 @@
     <div class="ml-8">
         @foreach (var childNode in Node.Children)
         {
-            <BillElementTreeNode @key="childNode" Node="@childNode" OnRemove="OnRemove" OnAdd="OnAdd" />
+            <BillElementTreeNode Node="@childNode" OnRemove="OnRemove" OnAdd="OnAdd" />
         }
     </div>
 }
